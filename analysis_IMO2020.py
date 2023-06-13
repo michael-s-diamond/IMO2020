@@ -1,7 +1,7 @@
 """
 Analysis of potential cloud changes due to IMO 2020 fuel sulfur regulations
 
-Code for making figures and calculating table values for 'Detection of large-scale cloud microphysical changes and evidence for decreasing cloud brightness within a major shipping corridor due to the 2020 International Maritime Organization marine fuel sulfur regulations'
+Code for making figures and calculating table values for 'Detection of large-scale cloud microphysical changes within a major shipping corridor after implementation of the IMO 2020 fuel sulfur regulations'
 
 Modifications
 -------------
@@ -9,6 +9,9 @@ Modifications
     -Created
 10 May 2023: Michael Diamond, Tallahassee, FL
     -Final form for ACP Letters initial submission
+12 June 2023: Michael Diamond, Tallahassee, FL
+    -Figure adjustments based on reviewer comments
+    -Added SI Figure displaying IMO data
 """
 
 #Import libraries
@@ -106,7 +109,10 @@ def map_plot(var='cer',sea='SON'):
     
     #Plot data on 3x3 grid of map panels
     n = 1
-    for y in ['clim','2017','2020']:
+    
+    ts = ['clim','2017','2020']
+    
+    for y in ts:
         for kind in ['Ship','NoShip','Difference']:
 
             #Get data and set value limits, colors, etc.
@@ -150,7 +156,7 @@ def map_plot(var='cer',sea='SON'):
                         vmin = 24
                         vmax = 34
                         ticks = np.arange(24,34.1,2)
-                    lab = r'$A_\mathrm{cld,Ship}$ (%)'
+                    lab = r'$A_\mathrm{cld,NoShip}$ (%)'
             if kind == 'Difference':
                 if var == 'cer':
                     data = (dKr[var][str(y)][sea]['Obs']-dKr[var][str(y)][sea]['Est']).sel(lat=slice(-25,-2),lon=slice(-15,15))
@@ -225,23 +231,23 @@ def map_plot(var='cer',sea='SON'):
             ax.plot([-13,8,8,-13,-13],[-18,-18,-8,-8,-18],'k',lw=1,transform=ccrs.PlateCarree())
 
             #Panel labels
-            ax.text(14.95,-6.325,'(%s)' % plabs[n-1],color='w',fontsize=10,transform=ccrs.PlateCarree(),zorder=11,va='top',ha='right') 
+            ax.text(14.95,-6.325,'(%s)' % plabs[n-1],color='w',fontsize=fs-4,transform=ccrs.PlateCarree(),zorder=11,va='top',ha='right') 
 
             #Row/column labels
             if n == 1: 
-                plt.title('Ship\n',fontsize=fs)
-                ax.text(-.3,.5,s='2002–2019',transform = ax.transAxes,fontsize=fs,va='center',ha='center',rotation=90)
+                plt.title('Observed\n',fontsize=fs)
+                ax.text(-.3,.5,s='Climatology\n(2002–2019)',transform = ax.transAxes,fontsize=fs,va='center',ha='center',rotation=90)
 
-            elif n == 2: plt.title('NoShip\n',fontsize=fs)
+            elif n == 2: plt.title('Counterfactual\n',fontsize=fs)
             elif n == 3: plt.title('Difference\n',fontsize=fs)
-            elif n == 4: ax.text(-.3,.5,s='2017–2019',transform = ax.transAxes,fontsize=fs,va='center',ha='center',rotation=90)
-            elif n == 7: ax.text(-.3,.5,s='2020–2022',transform = ax.transAxes,fontsize=fs,va='center',ha='center',rotation=90)
+            elif n == 4: ax.text(-.3,.5,s='Pre-regulation\n(2017–2019)',transform = ax.transAxes,fontsize=fs,va='center',ha='center',rotation=90)
+            elif n == 7: ax.text(-.3,.5,s='Post-regulation\n(2020–2022)',transform = ax.transAxes,fontsize=fs,va='center',ha='center',rotation=90)
 
             n += 1
 
-    plt.savefig(dir_figs+'maps_%s_%s_clim_2017_2020.png' % (var,sea),dpi=450)
+    plt.savefig(dir_figs+'maps_%s_%s_clim_2017_2020.png' % (var,sea),dpi=450,facecolor='w')
 
-
+    
 """
 Figures S3 and S4: Maps of SON and ANN meteorology
 """
@@ -378,7 +384,7 @@ def met_plot(sea='SON'):
                 ax.plot([-13,8,8,-13,-13],[-18,-18,-8,-8,-18],'k',lw=1,transform=ccrs.PlateCarree())
 
                 #Panel labels
-                ax.text(14.95,-6.325,'(%s)' % plabs[n-1],color='w',fontsize=10,transform=ccrs.PlateCarree(),zorder=11,va='top',ha='right') 
+                ax.text(14.95,-6.325,'(%s)' % plabs[n-1],color='w',fontsize=fs-4,transform=ccrs.PlateCarree(),zorder=11,va='top',ha='right') 
 
                 #Row/column labels
                 if n == 1: 
@@ -398,8 +404,6 @@ def met_plot(sea='SON'):
 """
 Table S1: Summary statistics
 """
-
-#Mean ship values
 
 def print_row(var='cer',y='clim',sea='SON'):
     print(var,sea,y)
@@ -523,6 +527,61 @@ def print_ratio(var='cer',sea='SON'):
 
 
 """
+Figure S5: IMO Fuel statistics
+"""
+    
+asc = [2.65,2.51,2.43,2.46,2.45,2.58,2.6,2.6,2.34, #2011-2019
+       (.06*17.30+0.45*89.28+2.55*23.07)/129.65, #2020
+       (.07*15.88+0.45*86.34+2.70*29.66)/131.88, #2021
+       (0.06*17.76+0.46*82.95+2.73*34.34)/135.05] #2022
+
+com_pct = 100*np.array([(.1282*118963976+.9986*14449641)/(118963976+14449641),
+                        (17.30+89.28)/129.65,
+                        (15.88+86.34)/131.88,
+                        (17.76+82.95)/135.05]) #2019-2022
+non_pct = 100*np.array([(.8718*118963976+.0014*14449641)/(118963976+14449641),
+                        23.07/129.65,29.66/131.88,34.34/135.05])
+
+#
+###Plot
+#
+plt.figure(figsize=(10,7.5))
+plt.clf()
+fs = 16
+
+plt.subplot(211)
+plt.plot(np.arange(2011,2023)+.5,asc,'k',lw=2)
+plt.scatter(np.arange(2011,2023)+.5,asc,s=100,marker='o',facecolor='gold',edgecolor='k',lw=2,zorder=10)
+
+plt.ylim(0,5)
+plt.xlim(2011,2023)
+
+plt.plot([2011,2012,2012,2020,2020,2023],[4.5,4.5,3.5,3.5,0.5,0.5],ls='dashed',c='.5',lw=1)
+plt.text(2012.075,3.55,'Sulfur limit for open seas',fontsize=fs-2,ha='left',va='bottom',color='.5')
+
+plt.yticks(fontsize=fs-2)
+plt.xticks(fontsize=fs-2)
+plt.title('(a) Global average marine fuel oil sulfur content by mass (%)',fontsize=fs,loc='left')
+
+plt.subplot(212)
+
+plt.bar(np.arange(2019,2023),com_pct,facecolor=cm.Purples(.5),edgecolor='k',lw=1)
+for year, pct in zip(np.arange(2019,2023),com_pct):
+    plt.text(year,pct+5,s='%i%s' % (int(pct),'%'),ha='center',va='center',fontsize=fs-2)
+
+plt.ylim(0,100)
+
+plt.yticks(fontsize=fs-2)
+plt.xticks(np.arange(2019,2023),fontsize=fs-2)
+plt.title('(b) Fraction of marine fuel oil compliant with IMO 2020 sulfur limits (%)',fontsize=fs,loc='left')
+
+plt.tight_layout()
+
+plt.savefig(dir_figs+'fuel_oil_stats.png',dpi=450)
+plt.savefig(dir_figs+'fuel_oil_stats.eps',dpi=450)    
+    
+    
+"""
 Figure 4: Time series
 """
 
@@ -535,9 +594,13 @@ sea = 'SON'
 
 tsla_Obs = np.array([dKr[var][y][sea].sel(lat=slice(-18,-8),lon=slice(-13,8))['Obs'].mean().values for y in list(dObs[var].keys())[:-1]])
 tsla_Est = np.array([dKr[var][y][sea].sel(lat=slice(-18,-8),lon=slice(-13,8))['Est'].mean().values for y in list(dObs[var].keys())[:-1]])
+tsla_Est_high = 70/210*np.array([np.percentile(dKr[var][y][sea].krSims.mean(axis=-1),97.5)-dKr[var][y][sea].krSims.mean().values for y in list(dObs[var].keys())[:-1]])
+tsla_Est_low = 70/210*np.array([np.percentile(dKr[var][y][sea].krSims.mean(axis=-1),2.5)-dKr[var][y][sea].krSims.mean().values for y in list(dObs[var].keys())[:-1]])
 
 tscl_Obs = np.array([dKr[var][y][sea].sel(lat=slice(-18,-8),lon=slice(-13,8))['Obs'].mean().values for y in list(dObs[var].keys())[-1:]])
 tscl_Est = np.array([dKr[var][y][sea].sel(lat=slice(-18,-8),lon=slice(-13,8))['Est'].mean().values for y in list(dObs[var].keys())[-1:]])
+tscl_Est_high = 70/210*np.array([np.percentile(dKr[var][y][sea].krSims.mean(axis=-1),97.5)-dKr[var][y][sea].krSims.mean().values for y in list(dObs[var].keys())[-1:]])
+tscl_Est_low = 70/210*np.array([np.percentile(dKr[var][y][sea].krSims.mean(axis=-1),2.5)-dKr[var][y][sea].krSims.mean().values for y in list(dObs[var].keys())[-1:]])
 
 alt2020 = tsla_Est[-1]+(tscl_Obs-tscl_Est)
 
@@ -545,17 +608,16 @@ plt.scatter(np.arange(2003.5,2022,3),tsla_Obs,c='k',label='Ship')
 plt.plot([2002,2005,2005,2008,2008,2011,2011,2014,2014,2017,2017,2020,2020,2023],np.array([(tsla_Obs[i],tsla_Obs[i]) for i in range(len(tsla_Obs))]).ravel(),c='k',lw=1)
 
 plt.scatter(np.arange(2003.5,2022,3),tsla_Est,color=cm.Blues(.5),marker='D',label='NoShip')
+plt.errorbar(np.arange(2003.5,2022,3),tsla_Est,yerr=np.array((-tsla_Est_high,tsla_Est_low)),fmt='none',ecolor=cm.Blues(.5),elinewidth=1,capsize=2,capthick=1)
 plt.plot([2002,2005,2005,2008,2008,2011,2011,2014,2014,2017,2017,2020,2020,2023],np.array([(tsla_Est[i],tsla_Est[i]) for i in range(len(tsla_Obs))]).ravel(),c=cm.Blues(.5),lw=1,ls='dashed')
 
-plt.scatter(2021.5,alt2020,c='k',marker='x',label='Noncompliance')
+plt.scatter(2021.5,alt2020,c=cm.Reds(.95),marker='x',label='Noncompliance')
 
 plt.plot(2*[2021.5+.25],[alt2020,tsla_Obs[-1]],c=cm.Reds(.75),ls='dotted',lw=2,label='True IMO effect,\nkriging method')
-plt.text(2021.5+.25,(tsla_Obs[-1]+alt2020)/2,s='}',fontsize=24,ha='left',va='center',color=cm.Reds(.75),)
-plt.text(2021.5+.65,(tsla_Obs[-1]+alt2020)/2,s='%.1f\nµm' % (tsla_Obs[-1]-alt2020),fontsize=12,ha='left',va='center',color=cm.Reds(.75))
+plt.text(2021.5+.45,(tsla_Obs[-1]+alt2020)/2,s='%.1f\nµm' % (tsla_Obs[-1]-alt2020),fontsize=12,ha='left',va='center',color=cm.Reds(.75))
 
 plt.plot(2*[2021.5-.25],[tsla_Obs[-2],alt2020],c=cm.Reds(.5),ls='dotted',lw=2,label='False IMO effect,\npersistence method')
-plt.text(2021.5-.25,(alt2020+tsla_Obs[-2])/2,s='{',fontsize=24,ha='right',va='center',color=cm.Reds(.5))
-plt.text(2021.5-.65,(alt2020+tsla_Obs[-2])/2,s='%.1f\nµm' % (alt2020-tsla_Obs[-2]),fontsize=12,ha='right',va='center',color=cm.Reds(.5))
+plt.text(2021.5-.45,(alt2020+tsla_Obs[-2])/2,s='%.1f\nµm' % (alt2020-tsla_Obs[-2]),fontsize=12,ha='right',va='center',color=cm.Reds(.5))
 
 plt.ylabel(r'Austral spring regional mean $r_\mathrm{e}$ (µm)',fontsize=fs)
 plt.yticks(fontsize=fs-2)
@@ -641,12 +703,12 @@ xvals = np.arange(-5,5,.01)
 plt.subplot(2,1,1) #SON
 
 plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['clim']['SON'])(xvals),facecolor=cm.Blues(.1),label='2002–2019')
-plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['SON'])(xvals),facecolor='.8',label='2020–2022')
-plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['SON']-dIRF['cer']['clim']['SON'])(xvals),facecolor=cm.Reds(.3),label='IMO 2020')
+plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['SON'])(xvals),facecolor='.7',label='2020–2022')
+plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['SON']-dIRF['cer']['clim']['SON'])(xvals),facecolor=cm.Reds(.3),label='IMO 2020',hatch='x',edgecolor=cm.Reds(.9),lw=1)
 
 plt.plot(xvals,gaussian_kde(dIRF['Acld']['clim']['SON'])(xvals),c=cm.Blues(.5),lw=2)
 plt.plot(xvals,gaussian_kde(dIRF['Acld']['2020']['SON'])(xvals),c='k',lw=2)
-plt.plot(xvals,gaussian_kde(dIRF['Acld']['2020']['SON']-dIRF['Acld']['clim']['SON'])(xvals),c=cm.Reds(.75),lw=2)
+plt.plot(xvals,gaussian_kde(dIRF['Acld']['2020']['SON']-dIRF['Acld']['clim']['SON'],)(xvals),c=cm.Reds(.75),lw=2,ls='dashed')
 
 plt.plot([0,0],[-10,10],'k--',lw=1)
 
@@ -665,12 +727,12 @@ plt.title(r'(a) Austral spring Twomey effect estimates ($\mathrm{W}$ $\mathrm{m}
 plt.subplot(2,1,2) #ANN
 
 plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['clim']['ANN'])(xvals),facecolor=cm.Blues(.1))
-plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['ANN'])(xvals),facecolor='.8',label=r'$-{F}_{\odot} \mathcal{C}_\mathrm{low} \phi_{\mathrm{atm}} \alpha_\mathrm{cld} (1-\alpha_\mathrm{cld}) \frac{-\Delta {r}_\mathrm{e}}{r_\mathrm{e,Ship}}$')
-plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['ANN']-dIRF['cer']['clim']['ANN'])(xvals),facecolor=cm.Reds(.3))
+plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['ANN'])(xvals),facecolor='.7',label=r'${r}_\mathrm{e}$ calculation; Eq. (A1)')
+plt.fill_between(xvals,0*xvals,gaussian_kde(dIRF['cer']['2020']['ANN']-dIRF['cer']['clim']['ANN'])(xvals),facecolor=cm.Reds(.3),hatch='x',edgecolor=cm.Reds(.9),lw=1)
 
 plt.plot(xvals,gaussian_kde(dIRF['Acld']['clim']['ANN'])(xvals),c=cm.Blues(.5),lw=2)
-plt.plot(xvals,gaussian_kde(dIRF['Acld']['2020']['ANN'])(xvals),c='k',lw=2,label=r'$-{F}_{\odot} \mathcal{C}_\mathrm{low} \Delta {A}_\mathrm{cld}$')
-plt.plot(xvals,gaussian_kde(dIRF['Acld']['2020']['ANN']-dIRF['Acld']['clim']['ANN'])(xvals),c=cm.Reds(.75),lw=2)
+plt.plot(xvals,gaussian_kde(dIRF['Acld']['2020']['ANN'])(xvals),c='k',lw=2,label=r'${A}_\mathrm{cld}$ calculation; Eq. (A2)')
+plt.plot(xvals,gaussian_kde(dIRF['Acld']['2020']['ANN']-dIRF['Acld']['clim']['ANN'])(xvals),c=cm.Reds(.75),lw=2,ls='dashed')
 
 plt.plot([0,0],[-10,10],'k--',lw=1)
 
@@ -692,7 +754,7 @@ plt.savefig(dir_figs+'Twomey.eps')
 
 
 """
-Figures S5-8: Semivariograms
+Figures S6-9: Semivariograms
 """
 
 h = np.linspace(0,22,1000)
